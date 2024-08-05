@@ -8,7 +8,7 @@
 
 ​		我们本次教程使用的是全志R16平台，通过查阅芯片手册得知，R16上电会首先从SDC0(SD卡控制器0)寻找Bootloader运行：
 
-![引导SylixOS](.\Image\引导SylixOS_1.png)
+![引导SylixOS](./Image/引导SylixOS_1.png)
 
 ​		这个Bootloader就是U-Boot，U-Boot运行后我们就可以使用U-Boot的***fatload*** 命令将SylixOS镜像从SD卡中加载到内存固定位置。我们首先通过***fatls*** 命令查看SD卡中有哪些文件：
 
@@ -33,7 +33,7 @@
 
 ​		其中bsp_clockwork.bin就是SylixOS内核镜像，SylixOS镜像一般加载到内存中时都是放在内存基址处的，通过查阅R16芯片手册得知，内存基址为0x40000000：
 
-![引导SylixOS](.\Image\引导SylixOS_2.png)
+![引导SylixOS](./Image/引导SylixOS_2.png)
 
 ​		所以我们可以通过***fatload*** 命令将SylixOS镜像加载到0x40000000地址：
 
@@ -120,15 +120,15 @@ t_idle0          4010000     0 255  99.0%   0.0%
 
 ​		首先我们要熟悉RealEvo-IDE的基本使用，比如创建base和bsp工程等等，这个需要大家提前进行学习。全志R16是cortex-a7架构的，所以在创建base工程时我们要选择这个架构类型：
 
-![创建BSP工程](.\Image\创建BSP工程_1.png)
+![创建BSP工程](./Image/创建BSP工程_1.png)
 
 ​		在创建bsp工程时，我们选择arm-none模板：
 
-![创建BSP工程](.\Image\创建BSP工程_2.png)
+![创建BSP工程](./Image/创建BSP工程_2.png)
 
 ​		这个选项会创建一个最基础的BSP模板，不包含任何的开发板相关代码，有助于我们在此基础上添加代码：
 
-![创建BSP工程](.\Image\创建BSP工程_3.png)
+![创建BSP工程](./Image/创建BSP工程_3.png)
 
 我们以上图为例来简单看下SylixOS BSP的基本组织:
 
