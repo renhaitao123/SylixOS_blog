@@ -118,3 +118,59 @@ Apple II发售于1977年，它的发售带动了个人计算机大力的发展�
 
 同时用户可以通过手机、平板等设备远程登陆到EdgerOS，对运行在其上的各种应用进行管理和设置。
 
+## SylixOS开发环境
+
+### SylixOS Base工程
+
+SylixOS Base工程是其他所有工程的基石，在创建使用其他SylixOS工程之前必须首先创建并编译SylixOS Base工程。我们知道Linux的内核源码其实包含了内核功能源码+板子驱动源码，这两部分源码是放在一起编译的，而不像SylixOS、VxWorks、QNX这类系统有明确的内核和BSP之分。SylixOS将板级无关的代码组织成Base工程，主要包括了内核线程调度器、文件系统、网络协议栈、cpu架构(mmu和cache)等等功能，因为这部分代码和具体的板子无关，所以统一放在Base工程里进行编译。
+
+在Base工程中，除了包含基本的内核代码外，还包含了一些动态库和APP代码，因为这些是系统使用的比较重要的库或者工具，所以就放入Base中供用户来选择使用，如下图所示。
+
+![SylixOS开发环境](./Image/SylixOS开发环境_1.png)
+
+libsylixos和libcextern是默认选择的两个，libsylixos中主要是内核源码还有一些和c++、app堆管理等相关的库，libcextern是SylixOS下的c库。这里介绍下libsylixos编译出来的两个比较重要的产物：libsylixos.a和libvpmpdm.so，如下图所示。
+
+![SylixOS开发环境](./Image/SylixOS开发环境_2.png)
+
+- libsylixos.a最终会被SylixOS BSP工程使用，会和BSP进行联编，最终生成SylixOS镜像。
+- libvpmpdm.so会被SylixOS APP和SylixOS Shared Lib工程强制依赖使用，主要功能是负责用户层动态内存申请。SylixOS在用户层使用malloc和在内核中使用malloc是两套不同的代码实现的，并且使用的堆内存区也不同。用户层的malloc是在APP区申请内存，内核层的malloc是在内核数据区申请内存(参考SylixOS BSP开发教程中讲解的内存划分)。
+
+在实际的板子上，如果使用到了APP和动态库工程，一定要记得先将SylixOS Base工程的这些基础动态库和工具部署到板子上，具体的操作可以参考SylixOS IDE使用手册。
+
+### SylixOS BSP工程
+
+SylixOS BSP工程主要负责板级的初始化和系统引导启动，不同的开发板都需要对应的SylixOS BSP才能编译出最终系统镜像。关于SylixOS BSP移植请参考本网站系列文章。
+
+SylixOS BSP工程编译后生成的最终SylixOS内核镜像是在BSP工程下而不是在BASE工程下，一般内核镜像名为xxx.elf或者xxx.bin。用elf文件作为引导镜像的一般在x86、龙芯、飞腾平台下使用，用bin文件作为引导镜像的一般在arm平台下使用，具体使用哪种文件作为引导文件根据实际情况来选择。
+
+![SylixOS开发环境](./Image/SylixOS开发环境_3.png)
+
+生成的SylixOS镜像一般都是通过bootloader来加载到内存引导的，可以是网络、U盘、磁盘或者其他方式，根据实际平台使用的bootloader和支持的引导方式来选择具体的引导方法。
+
+### SylixOS APP工程
+
+类似于Linux下应用都是以单独的elf可执行文件存在，SylixOS下的应用程序也是elf格式的可执行文件。应用程序可以单独进行编译开发，这样就将应用和系统解耦，可以分别开发和维护，降低维护成本。SylixOS应用可以动态加载执行，也可以使用动态库，这种使用方式对于熟悉Linux应用编程的童鞋来说应该是比较容易接受学习的。
+
+APP工程编译后会生成strip和非strip两个elf格式的可执行文件，一般部署到开发板上的都是strip版本文件，这样可以减少文件体积，节省存储空间。
+
+![SylixOS开发环境](./Image/SylixOS开发环境_4.png)
+
+### SylixOS Shared Lib工程
+
+SylixOS和Linux一样，都可以编译生成动态库文件，通过将公共的代码以动态库形式提供可以提高代码复用率，还有一些软件支持不同的插件，这些插件其实就是不同的动态库。SylixOS下通过Shared Lib工程来创建动态库工程，编译后生成xxx.so动态库，并同时生成xxx.a静态库，也就是SylixOS下的动态库工程是同时编译出动态库和静态库两个文件的，具体使用那个看实际情况。另外需要注意的是，这里生成的静态库文件和下面要介绍的内核静态库文件不是同一个东西，这里的静态库是给应用层使用的，也就是给APP工程使用的，千万不要把这里生成的静态库拿给BSP或者内核模块去使用，否则BSP或者内核模块编译都不会通过。
+
+![SylixOS开发环境](./Image/SylixOS开发环境_5.png)
+
+### SylixOS Kernel Module工程
+
+我们都知道Linux下的驱动都是叫xxx.ko，类似的，SylixOS下的驱动模块是通过Kernel Module工程创建的，编译后会生成xxx.ko驱动程序，通过“insmod”命令进行动态加载使用。
+
+SylixOS下的驱动程序可以直接编译进BSP中，系统启动时调用驱动的入口初始化函数，也可以将驱动编译成内核模块形式，在系统启动后进行动态加载初始化使用。这种使用方式和Linux下类似，降低了Linux下驱动移植和使用的难度。
+
+![SylixOS开发环境](./Image/SylixOS开发环境_6.png)
+
+### SylixOS Kernel Static Lib工程
+
+有时候会有一些需求要将一些驱动代码以静态库的形式提供，然后被BSP工程或者内核模块工程来使用。这时候就可以通过Kernel Static Lib工程来创建内核静态库，通过这个工程生成的静态库文件只能被BSP或者其他内核模块使用，不能给应用层APP去使用。
+
+![SylixOS开发环境](./Image/SylixOS开发环境_7.png)
