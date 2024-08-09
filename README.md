@@ -1,3 +1,2 @@
 # SylixOS_blog
-Record some SylixOS-related blogs for learning. \
-蛋哥博客域名要到期了，重新整理学习一下蛋哥的博客，做个记录.
+蛋哥博客的域名马上到期了，正好借此机会记录学习一下他的博客，顺道整理一下之前的笔记。
