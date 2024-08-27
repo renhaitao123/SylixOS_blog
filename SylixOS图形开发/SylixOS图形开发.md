@@ -359,3 +359,45 @@ OpenCL的驱动主要就有两大功能：
 从OpenCL 2.1版本的编译框架改动来看，Khronos组织希望使用SPIR-V这一IR来统一Vulkan和OpenCL的中间表示语言。Khronos提供了一个名为SPIR-V generator/Clang的基于LLVM的编译器，用于将用OpenCL C和OpenCL C++语言编写的kernel源码编译成SPIR-V格式的二进制文件。
 
 ## Wayland窗口系统
+
+### 窗口系统
+
+#### 窗口系统简介
+
+任何窗口系统的主要组件通常称为显示服务器(Display Server)，也可以称作窗口服务器(Window Server)或合成器(Compositor)。在窗口中运行并显示其GUI的任何应用程序都是显示服务器的客户端。显示服务器及其客户端通过通信协议相互通信，通信协议通常称为显示服务器协议(Display Server Protocol)。显示服务器接收并处理输入事件，例如键盘、鼠标或触摸屏并将其传递给正确的客户端，显示服务器还负责将客户端内容输出到显示器。如下所示：
+
+![Wayland窗口系统(一)](./Image/Wayland_1.png)
+
+#### 不同OS平台的窗口系统
+
+##### X Window System
+
+X窗口系统用于类Unix操作系统，使用C/S模型，服务器接受图形输出请求并且分发用户输入事件。服务器和客户端之间的通信协议可以通过网络进行操作：客户端和服务器可以在同一台机器上运行，也可以在不同的机器上运行，可能使用不同的架构和操作系统。如下所示：
+
+![Wayland窗口系统(一)](./Image/Wayland_2.png)
+
+##### Desktop Window Manager
+
+DWM是微软Windows系统中的窗口管理器，它最初是为了实现新的“ Windows Aero ”用户体验的一部分而创建的，这允许诸如透明度，3D窗口切换等效果。DWM以不同的方式工作，具体取决于操作系统（Windows 7或Windows Vista）以及它使用的图形驱动程序版本（WDDM 1.0或1.1）。在Windows 7和WDDM 1.1驱动程序下，DWM仅将程序的缓冲区写入视频RAM，即使它是图形设备接口（GDI）程序。这是因为Windows 7为GDI 支持（有限的）硬件加速，并且这样做不需要在系统RAM中保留缓冲区的副本，以便CPU可以写入它。
+
+![Wayland窗口系统(一)](./Image/Wayland_3.png)
+
+##### Quartz Compositor
+
+Quartz Compositor是macOS中的显示服务器（同时也是合成窗口管理器）。Quartz 2D，OpenGL，Core Image，QuickTime或其他进程的位图输出被写入特定的内存位置或后备存储区。然后，Compositor从后备存储区中读取数据，并将每个数据组合成一个用于显示的图像，将该图像写入图形卡的帧缓冲存储区。Quartz Compositor只接受栅格化数据，是唯一可以直接访问图形帧缓冲区的进程。
+
+在管理单个窗口时，Quartz Compositor 从其渲染器接受窗口内容的位图图像及其位置。渲染器的选择取决于单个应用程序，尽管大多数使用Quartz 2D。
+
+作为窗口管理器，Quartz Compositor还有一个事件队列，用于接收事件，例如击键和鼠标点击。Quartz Compositor从队列中获取事件，确定哪个进程拥有事件发生的窗口，并将事件传递给进程。
+
+![Wayland窗口系统(一)](./Image/Wayland_4.png)
+
+### Wayland
+
+#### Wayland简介
+
+Wayland是一个合成器与客户端通信的窗口协议，以及该协议的C库实现。合成器可以是在Linux内核模式设置和evdev输入设备，X应用程序或Wayland客户端本身上运行的独立显示服务器。客户端可以是传统应用程序，X服务器或其他显示服务器。
+
+Wayland协议遵循C/S模型，其中客户端是请求在屏幕上显示像素缓冲区的图形应用程序，并且服务器（合成器）是控制这些缓冲区的显示的服务提供者。
+
+#### Wayland架构
